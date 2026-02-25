@@ -7,16 +7,17 @@ st.set_page_config(page_title="Rutas de Reparto", page_icon="🚚")
 st.title("🚚 Ruta del Día")
 
 # 1. Botón para que tu tío suba el archivo diario
-archivo_subido = st.file_uploader("Sube el archivo de la ruta de hoy (Excel o CSV)", type=["xlsx", "csv"])
+# Permitimos subir tanto xlsx, como xls, como csv
+archivo_subido = st.file_uploader("Sube el archivo de la ruta de hoy (Excel o CSV)", type=["xlsx", "xls", "csv"])
 
 if archivo_subido is not None:
     try:
         # 2. Leer el archivo que acaba de subir tu tío
-        if archivo_subido.name.endswith('.xlsx'):
-            # Si sube un Excel, lo leemos directamente (¡Cero problemas de comas/puntos y comas!)
+        if archivo_subido.name.endswith('.xlsx') or archivo_subido.name.endswith('.xls'):
+            # Pandas detectará automáticamente si usa openpyxl o xlrd según la extensión
             df_ruta = pd.read_excel(archivo_subido)
         else:
-            # Si sube un CSV por inercia, intentamos adivinar el separador automáticamente
+            # Si sube un CSV
             df_ruta = pd.read_csv(archivo_subido, encoding="latin1", sep=None, engine="python")
 
         # Limpiar columnas de la ruta
