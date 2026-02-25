@@ -4,10 +4,26 @@ import urllib.parse
 
 st.set_page_config(page_title="Rutas de Reparto", page_icon="🚚", layout="centered")
 
+# --- ESTILOS PERSONALIZADOS (Para que el botón se ponga VERDE) ---
+st.markdown("""
+    <style>
+    /* Forzar que el botón 'primary' sea verde */
+    div.stButton > button[kind="primary"] {
+        background-color: #28a745 !important;
+        color: white !important;
+        border-color: #28a745 !important;
+    }
+    /* Color al pasar el ratón por encima */
+    div.stButton > button[kind="primary"]:hover {
+        background-color: #218838 !important;
+        border-color: #1e7e34 !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 st.title("🚚 Ruta del Día")
 
 # --- INICIALIZAR MEMORIA ---
-# Esto guarda qué clientes ya están entregados para que no se borre al recargar
 if 'entregados' not in st.session_state:
     st.session_state.entregados = {}
 
@@ -22,19 +38,18 @@ if archivo_subido is not None:
         elif archivo_subido.name.endswith('.xls'):
             df_ruta = pd.read_excel(archivo_subido, engine='xlrd')
         else:
-            # Intentamos leer el CSV en UTF-8 (para evitar problemas de tildes)
             try:
                 df_ruta = pd.read_csv(archivo_subido, encoding="utf-8", sep=",", engine="python")
             except UnicodeDecodeError:
                 df_ruta = pd.read_csv(archivo_subido, encoding="latin1", sep=",", engine="python")
 
-        # Leer archivo de clientes (Solución para las tildes)
+        # Leer archivo de clientes
         try:
             df_clientes = pd.read_csv("clientes.csv", encoding="utf-8", sep=",")
         except UnicodeDecodeError:
             df_clientes = pd.read_csv("clientes.csv", encoding="latin1", sep=",")
 
-        # 2. Limpieza básica anti-errores
+        # 2. Limpieza básica
         df_ruta.columns = df_ruta.columns.str.strip()
         df_clientes.columns = df_clientes.columns.str.strip()
         
@@ -53,10 +68,8 @@ if archivo_subido is not None:
             cliente = fila.get('Cliente', 'Desconocido')
             direccion = fila.get('DireccionCl', 'Dirección no encontrada')
             
-            # Crear un identificador único para este envío en la memoria
             id_envio = f"{index}_{cliente}"
             
-            # Si es la primera vez que vemos este envío, lo marcamos como NO entregado
             if id_envio not in st.session_state.entregados:
                 st.session_state.entregados[id_envio] = False
 
@@ -68,12 +81,10 @@ if archivo_subido is not None:
                 else:
                     st.write(f"📍 {direccion}")
                     
-                    # Preparamos la dirección para las URLs
                     direccion_codificada = urllib.parse.quote(str(direccion))
                     link_gmaps = f"https://www.google.com/maps/dir/?api=1&destination={direccion_codificada}"
                     link_waze = f"https://waze.com/ul?q={direccion_codificada}&navigate=yes"
                     
-                    # Dividimos en columnas (Las dos primeras para mapas, la última grande para Entregado)
                     col1, col2, col3 = st.columns([1, 1, 2])
                     
                     with col1:
@@ -83,21 +94,16 @@ if archivo_subido is not None:
                         st.link_button("🚙 WAZE", link_waze, use_container_width=True)
                     
                     with col3:
-                        # Leemos el estado actual de la memoria
                         esta_entregado = st.session_state.entregados[id_envio]
                         
-                        # Cambiamos el texto y el diseño según el estado
                         texto_boton = "🟩 ENTREGADO" if esta_entregado else "⬜ POR ENTREGAR"
                         tipo_boton = "primary" if esta_entregado else "secondary"
                         
-                        # Botón que cambia de estado al pulsarlo
                         if st.button(texto_boton, key=f"btn_{id_envio}", type=tipo_boton, use_container_width=True):
-                            # Al pulsar, invertimos el estado (de False a True, o de True a False)
                             st.session_state.entregados[id_envio] = not esta_entregado
-                            # Recargamos la interfaz para mostrar el cambio
                             st.rerun()
                 
-                st.write("---") # Línea separadora visual
+                st.write("---")
 
     except Exception as e:
         st.error(f"⚠️ Error al procesar: {e}")
