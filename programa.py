@@ -7,9 +7,9 @@ st.set_page_config(page_title="Rutas de Reparto", page_icon="🚚")
 st.title("🚚 Ruta del Día")
 
 try:
-    # 1. Leer los dos archivos CSV directamente desde tu GitHub
-    df_clientes = pd.read_csv("clientes.csv")
-    df_ruta = pd.read_csv("ruta_hoy.csv")
+    # 1. Leer los dos archivos CSV indicando la codificación europea
+    df_clientes = pd.read_csv("clientes.csv", encoding="latin1")
+    df_ruta = pd.read_csv("ruta_hoy.csv", encoding="latin1")
 
     # 2. Cruzar los datos (Asegúrate de que la columna del nombre del cliente se llame igual en ambos)
     # Suponiendo que la columna se llama "Cliente" en ambos archivos:
