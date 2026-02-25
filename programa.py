@@ -9,7 +9,7 @@ st.title("🚚 Ruta del Día")
 try:
     # 1. Leer los dos archivos CSV indicando la codificación europea
     df_clientes = pd.read_csv("clientes.csv", encoding="latin1", on_bad_lines="skip")
-    df_ruta = pd.read_csv("ruta_hoy.csv", encoding="latin1", sep=";")  # Asegúrate de usar el separador correcto
+    df_ruta = pd.read_csv("ruta_hoy.csv", encoding="latin1", on_bad_lines="skip")  # Asegúrate de usar el separador correcto
 
     # 2. Cruzar los datos (Asegúrate de que la columna del nombre del cliente se llame igual en ambos)
     # Suponiendo que la columna se llama "Cliente" en ambos archivos:
