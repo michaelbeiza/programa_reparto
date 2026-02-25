@@ -7,29 +7,39 @@ st.set_page_config(page_title="Rutas de Reparto", page_icon="🚚")
 st.title("🚚 Ruta del Día")
 
 try:
-    # 1. Leer los dos archivos CSV indicando la codificación europea
-    df_clientes = pd.read_csv("clientes.csv", encoding="latin1", on_bad_lines="skip")
-    df_ruta = pd.read_csv("ruta_hoy.csv", encoding="latin1", on_bad_lines="skip")  # Asegúrate de usar el separador correcto
+    # 1. Leer los archivos. 
+    # Añadimos sep=";" porque Excel en España suele exportar los CSV separando por punto y coma.
+    df_clientes = pd.read_csv("clientes.csv", encoding="latin1", sep=";")
+    df_ruta = pd.read_csv("ruta_hoy.csv", encoding="latin1", sep=";")
 
-    # 2. Cruzar los datos (Asegúrate de que la columna del nombre del cliente se llame igual en ambos)
-    # Suponiendo que la columna se llama "Cliente" en ambos archivos:
+    # 2. Limpieza de seguridad: quitar espacios vacíos accidentales en los nombres de las columnas
+    df_clientes.columns = df_clientes.columns.str.strip()
+    df_ruta.columns = df_ruta.columns.str.strip()
+
+    # 3. Cruzar los datos por la columna "Cliente"
     df_completo = pd.merge(df_ruta, df_clientes, on="Cliente", how="left")
 
-    # 3. Mostrar la ruta al conductor
+    # 4. Mostrar la ruta al conductor
     for index, fila in df_completo.iterrows():
-        # Asumimos que tienes columnas llamadas 'Hora de entrega' y 'Direccion'
-        hora = fila.get('Hora de entrega', 'Sin hora')
-        cliente = fila['Cliente']
+        # Usamos los nombres exactos de las columnas de tus nuevos archivos
+        hora = fila.get('Hora', 'Sin hora')
+        cliente = fila.get('Cliente', 'Desconocido')
         direccion = fila.get('Direccion', 'Dirección no encontrada')
 
         with st.expander(f"🕒 {hora} - {cliente}"):
             st.write(f"📍 {direccion}")
             
-            # Crear enlace de Maps
-            direccion_codificada = urllib.parse.quote(str(direccion))
-            link_maps = f"https://www.google.com/maps/dir/?api=1&destination={direccion_codificada}"
-            
-            st.link_button("🗺️ NAVEGAR", link_maps)
+            # Crear enlace correcto de Google Maps para navegación
+            if direccion != 'Dirección no encontrada':
+                direccion_codificada = urllib.parse.quote(str(direccion))
+                # Esta URL sí abre Google Maps buscando la dirección exacta
+                link_maps = f"https://www.google.com/maps/search/?api=1&query={direccion_codificada}"
+                
+                st.link_button("🗺️ NAVEGAR EN MAPS", link_maps)
 
-except FileNotFoundError:
-    st.error("⚠️ Faltan los archivos. Asegúrate de que 'clientes.csv' y 'ruta_hoy.csv' están subidos a GitHub.")
+except FileNotFoundError as e:
+    st.error(f"⚠️ Falta un archivo. Comprueba que están subidos: {e.filename}")
+except KeyError as e:
+    st.error(f"⚠️ Hay un problema con los nombres de las columnas. Falta: {e}")
+except Exception as e:
+    st.error(f"⚠️ Error inesperado: {e}")
