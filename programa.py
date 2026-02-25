@@ -12,9 +12,13 @@ try:
     df_clientes = pd.read_csv("clientes.csv", encoding="latin1", sep=";")
     df_ruta = pd.read_csv("ruta_hoy.csv", encoding="latin1", sep=";")
 
-    # 2. Limpieza de seguridad: quitar espacios vacíos accidentales en los nombres de las columnas
+    # 2. Limpieza de seguridad...
     df_clientes.columns = df_clientes.columns.str.strip()
     df_ruta.columns = df_ruta.columns.str.strip()
+
+    # Añade esto temporalmente para investigar:
+    st.write("🕵️ Columnas de clientes detectadas:", df_clientes.columns.tolist())
+    st.write("🕵️ Columnas de ruta detectadas:", df_ruta.columns.tolist())
 
     # 3. Cruzar los datos por la columna "Cliente"
     df_completo = pd.merge(df_ruta, df_clientes, on="Cliente", how="left")
